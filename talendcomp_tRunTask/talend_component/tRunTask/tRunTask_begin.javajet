@@ -1,0 +1,246 @@
+<%@ jet 
+	imports="
+		org.talend.core.model.process.INode 
+		org.talend.core.model.process.ElementParameterParser 
+		org.talend.core.model.metadata.IMetadataTable 
+		org.talend.core.model.metadata.IMetadataColumn 
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.types.JavaTypesManager
+		org.talend.core.model.metadata.types.JavaType
+		java.util.List
+		java.util.ArrayList
+    	java.util.Map
+	" 
+%>
+<% 
+    CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+    INode node = (INode) codeGenArgument.getArgument();
+    String cid = node.getUniqueName();
+    boolean useTaskName = "true".equals(ElementParameterParser.getValue(node, "__USE_TASK_NAME__"));
+    boolean dieOnError = "true".equals(ElementParameterParser.getValue(node, "__DIE_ON_ERROR__"));
+    String taskName = ElementParameterParser.getValue(node, "__TASK_NAME__");
+    String debug = ElementParameterParser.getValue(node, "__DEBUG__");
+    String taskId = ElementParameterParser.getValue(node, "__TASK_ID__");
+    String tacUrl = ElementParameterParser.getValue(node, "__TAC_URL__");
+    String tacUser = ElementParameterParser.getValue(node, "__TAC_USER__");
+    String tacPasswd = ElementParameterParser.getValue(node, "__TAC_PASSWD__");
+    String asynchron = ElementParameterParser.getValue(node, "__ASYNCHRONOUS_RUN__");
+    List<Map<String, String>> contextParams = (List<Map<String,String>>) ElementParameterParser.getObjectValue(node, "__CONTEXT_PARAMS__");
+    String waitTimeUntilRunning = ElementParameterParser.getValue(node, "__WAIT_UNTIL_RUNNING_CHECK_CYCLE__");
+    String timeoutUntilRunning = ElementParameterParser.getValue(node, "__WAIT_UNTIL_RUNNING_TIMEOUT__");
+    String waitUntilFinished = ElementParameterParser.getValue(node, "__WAIT_UNTIL_FINISHED_CHECK_CYCLE__");
+    boolean checkTaskRunning = "true".equals(ElementParameterParser.getValue(node, "__CHECK_TASK_NOT_RUNNING_SIMULTANEOUSLY__"));
+    List<Map<String, String>> listTasks = (List<Map<String,String>>) ElementParameterParser.getObjectValue(node, "__TASK_NOT_RUNNING_SIMULTANEOUSLY__");
+    boolean waitForTaskEnd = "true".equals(ElementParameterParser.getValue(node, "__WAIT_UNTIL_END__"));
+    boolean allowPreparing = "true".equals(ElementParameterParser.getValue(node, "__ALLOW_GENERATING__"));
+%>
+    String taskId_<%=cid%> = null;
+<%  if (useTaskName) { %>
+    String label_<%=cid%> = <%=taskName.trim()%>;
+    {
+		// retrieve the taskId by task name
+	    de.cimt.talendcomp.tac.GetTaskIdByName taskIdByName = new de.cimt.talendcomp.tac.GetTaskIdByName();
+	    taskIdByName.setDebug(<%=debug%>);
+	    taskIdByName.setTacUrl(<%=tacUrl%>);
+	    taskIdByName.setUser(<%=tacUser%>);
+	    taskIdByName.setPassword(<%=tacPasswd%>);
+	    try {
+	    	taskId_<%=cid%> = taskIdByName.getTaskId(<%=taskName.trim()%>);
+			System.out.println("Task " + taskId_<%=cid%> + ": got id for label: " + <%=taskName.trim()%>);
+	    } catch (Exception e) {
+	    	globalMap.put("<%=cid%>_ERROR_MESSAGE", "Retrieve taskId failed: " + e.getMessage());
+	    	throw e;
+	    }
+    }
+<%  } else { %>
+	taskId_<%=cid%> = String.valueOf(<%=taskId%>);
+    String label_<%=cid%> = taskId_<%=cid%>;
+<%  } %>
+	globalMap.put("<%=cid%>_TASK_ID", taskId_<%=cid%>);
+<%  if (allowPreparing == false) { %>
+   {
+      // check if the task is ready to run
+  		de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus();
+		status.setDebug(<%=debug%>);
+		status.setTacUrl(<%=tacUrl%>);
+		status.setUser(<%=tacUser%>);
+		status.setPassword(<%=tacPasswd%>);
+		status.setTaskId(taskId_<%=cid%>);
+		status.execute();
+		if (status.isReadyToRun() == false && status.isRunning() == false) {
+		    // task has any other state than READY_TO_RUN and RUNNING or REQUESTING_TO_RUN
+		    // this could mean it is not deployed or is generating or need a generate
+			String message = "Task:" + label_<%=cid%> + " is not not ready to run. Status:" + status.getStatus() + " ErrorStatus:" + status.getErrorStatus();
+	    	globalMap.put("<%=cid%>_ERROR_MESSAGE", message);
+	    	// we have to die here
+	    	throw new Exception(message);
+		}
+    }
+<%  } %>
+<%	if (checkTaskRunning || waitForTaskEnd == false) { %>
+	{
+	    // wait until tasks are finished (or simply not running)
+		java.util.List<String> listTasks = new java.util.ArrayList<String>();
+	    de.cimt.talendcomp.tac.GetTaskIdByName taskIdByName = new de.cimt.talendcomp.tac.GetTaskIdByName();
+	    taskIdByName.setDebug(<%=debug%>);
+	    taskIdByName.setTacUrl(<%=tacUrl%>);
+	    taskIdByName.setUser(<%=tacUser%>);
+	    taskIdByName.setPassword(<%=tacPasswd%>);
+		de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus();
+		status.setDebug(<%=debug%>);
+		status.setTacUrl(taskIdByName.getTacUrl());
+		status.setUser(taskIdByName.getUser());
+		status.setPassword(taskIdByName.getPassword());
+	    try {
+			boolean wait = true;
+			boolean firstLoop = true;
+			while (wait) {
+				wait = false;
+				// Check if this task is not currently running
+				status.setTaskId(taskId_<%=cid%>);
+				status.execute();
+				if (status.isRunning()) {
+					if (firstLoop) {
+						firstLoop = false;
+						System.out.println("Task " + label_<%=cid%> + ": Own task is currently started or running. Wait for its end.");
+					}
+					wait = true;
+					Thread.sleep(1000);
+					continue; // no need to check another task if our task is not ready
+				}
+				Thread.sleep(100); // wait a bit to avoid over running the TAC
+				// wait for possible more tasks
+<%   for (Map<String, String> taskMap : listTasks) { 
+		  String taskToWait = taskMap.get("TASK_NAME"); 
+		  if (taskToWait != null && taskToWait.trim().isEmpty() == false) {
+		  	  taskToWait = taskToWait.replace('\"',' ').trim(); %>
+				status.setTaskId(taskIdByName.getTaskId("<%=taskToWait%>"));
+				status.execute();
+				if (status.isRunning()) {
+					wait = true;
+					Thread.sleep(1000);
+					continue; // one of the necessary task is currently running, no need to check another task 
+				}
+				Thread.sleep(100); // wait a bit to avoid over running the TAC
+<%        } %>			
+<%   } %>			
+			} // end while
+			System.out.println("Task " + label_<%=cid%> + ": All precondition tasks has been finished.");
+	    } catch (Exception e) {
+	    	globalMap.put("<%=cid%>_ERROR_MESSAGE", "Wait for task failed: " + e.getMessage());
+	    	throw e;
+	    }
+	}
+<%  }%>
+    de.cimt.talendcomp.tac.RunTask runTask_<%=cid%> = new de.cimt.talendcomp.tac.RunTask();
+	runTask_<%=cid%>.setDebug(<%=debug%>);
+    runTask_<%=cid%>.setTacUrl(<%=tacUrl%>);
+    runTask_<%=cid%>.setUser(<%=tacUser%>);
+    runTask_<%=cid%>.setPassword(<%=tacPasswd%>);
+    runTask_<%=cid%>.setTaskId(taskId_<%=cid%>);
+<%  for (Map<String, String> contextParam : contextParams) {
+		String paramName = contextParam.get("NAME");
+		String paramValue = contextParam.get("VALUE");
+		if (paramName != null && paramName.trim().isEmpty() == false && paramValue != null && paramValue.trim().isEmpty() == false) { %>
+		runTask_<%=cid%>.addContextParam("<%=paramName.trim()%>", <%=paramValue.trim()%>);
+<%      } %>
+<%  } %>
+    runTask_<%=cid%>.setSynchronous(!<%=asynchron%>);
+	long startTime = System.currentTimeMillis();
+	long stopTime = 0;
+    try {
+		System.out.println(runTask_<%=cid%>.getTimeAsString() + "# Task " + label_<%=cid%> + " starting ...");
+    	runTask_<%=cid%>.execute(); // start the task
+    } catch (Exception e) {
+    	globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
+	    System.err.println(runTask_<%=cid%>.getJson());
+    	throw e;
+    }
+<%  if ("true".equals(asynchron)) { %>
+	{
+		// waiting until task has been started
+		int waitTimeUntilRunning = <%=waitTimeUntilRunning%>;
+		de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus();
+		status.setDebug(<%=debug%>);
+		status.setTacUrl(runTask_<%=cid%>.getTacUrl());
+		status.setUser(runTask_<%=cid%>.getUser());
+		status.setPassword(runTask_<%=cid%>.getPassword());
+		status.setTaskId(runTask_<%=cid%>.getTaskId());
+		try {
+			status.execute();
+			if (status.isRunning() == false) {
+				long timeout = <%=timeoutUntilRunning%>;
+				System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " wait until running ...");
+				while (status.isRunning() == false) {
+					if (status.isPreparing() == false) {
+						long timeAfterStart = System.currentTimeMillis() - startTime;
+						if (timeAfterStart > timeout) {
+							System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " timeout to wait for running reached.");
+							break;
+						}
+					}
+					Thread.sleep(waitTimeUntilRunning);
+					status.execute();
+				}
+			} else {
+				System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is already running.");
+			}			
+		} catch (Exception e) {
+	    	globalMap.put("<%=cid%>_ERROR_MESSAGE", "Get running task status failed: " + e.getMessage());
+	    	System.err.println(status.getJson());
+	    	throw e;
+		} 
+<%      if (waitForTaskEnd) { %>		
+		// waiting until task has been finished
+		int waitUntilFinished = <%=waitUntilFinished%>;
+		try {
+			status.execute();
+			if (status.isRunning()) {
+				System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " wait until finished ...");
+				while (status.isRunning()) {
+					Thread.sleep(waitUntilFinished);
+					status.execute();
+				}
+			} else {
+				System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is already finished.");
+			}
+		} catch (Exception e) {
+	    	globalMap.put("<%=cid%>_ERROR_MESSAGE", "Get finish task status failed: " + e.getMessage());
+	    	System.err.println(status.getJson());
+	    	throw e;
+		}
+		System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + ": status:" + status.getStatus());
+		System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + ": errorStatus:" + status.getErrorStatus());
+		Integer returnCode = status.getReturnCode();
+		globalMap.put("<%=cid%>_RETURN_CODE", returnCode); 
+		System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + ": returnCode:" + returnCode);
+<%  	    if (dieOnError) { %>
+		if (returnCode != null && returnCode.intValue() != 0) {
+			errorCode = returnCode;
+	    	globalMap.put("<%=cid%>_ERROR_MESSAGE", "Task " + label_<%=cid%> + ": Execute task failed. ErrorCode:" + errorCode);
+			throw new Exception("Child job running failed. ErrorCode:" + errorCode);
+		}
+<%  	    } %>
+<%      } // wait for task end %>
+	}
+<%  } else { // run synchron %>
+	   stopTime = System.currentTimeMillis();
+		System.out.println("Task " + label_<%=cid%> + ": status:" + runTask_<%=cid%>.getStatus());
+		System.out.println("Task " + label_<%=cid%> + ": errorStatus:" + runTask_<%=cid%>.getErrorStatus());
+		Integer <%=cid%>_returnCode = runTask_<%=cid%>.getReturnCode();
+		globalMap.put("<%=cid%>_RETURN_CODE", <%=cid%>_returnCode); 
+		System.out.println("Task " + label_<%=cid%> + ": returnCode:" + <%=cid%>_returnCode);
+<%  	if (dieOnError) { %>
+		if (<%=cid%>_returnCode != null && <%=cid%>_returnCode.intValue() != 0) {
+			errorCode = <%=cid%>_returnCode;
+	    	globalMap.put("<%=cid%>_ERROR_MESSAGE", "Task " + label_<%=cid%> + ": Execute task failed. ErrorCode:" + errorCode);
+			throw new Exception("Child job running failed. ErrorCode:" + errorCode);
+		}
+<%  	} %>
+<%  } %>
+	System.out.println("Task " + label_<%=cid%> + ": ready.");
+	if (stopTime > 0) { // set duration only if we have wait until the end
+		globalMap.put("<%=cid%>_RUN_DURATION", (stopTime - startTime));	
+	}
