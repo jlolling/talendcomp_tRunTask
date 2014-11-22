@@ -7,6 +7,10 @@ public class GetTaskStatus extends TaskAction {
 	private String status;
 	private Integer returnCode;
 
+	public GetTaskStatus(TACConnection connection) {
+		super(connection);
+	}
+
 	@Override
 	public String getAction() {
 		return ACTION_NAME;

@@ -7,9 +7,14 @@ public class GetTaskIdByName extends TaskAction {
 	
 	public static final String ACTION_NAME = "getTaskIdByName";
 	public static final String PARAM_LABEL = "label";
+	public static final String PARAM_TASKNAME = "taskName";
 	private String taskName = null;
 	private static Map<String, String> taskNameMap = new HashMap<String, String>();
 	
+	public GetTaskIdByName(TACConnection connection) {
+		super(connection);
+	}
+
 	public String getTaskId(String taskName) throws Exception {
 		String taskId = taskNameMap.get(taskName);
 		if (taskId == null) {
@@ -32,6 +37,7 @@ public class GetTaskIdByName extends TaskAction {
 	@Override
 	public void execute() throws Exception {
 		addParam(PARAM_LABEL, taskName);
+		addParam(PARAM_TASKNAME, taskName);
 		String result = executeRequest();
 		if (result != null && result.isEmpty() == false) {
 			if (result.trim().startsWith(ERROR)) {

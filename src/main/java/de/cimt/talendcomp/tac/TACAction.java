@@ -4,54 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
 
 public abstract class TACAction {
 	
-	private String tacUrl;
-	private static final String PATH = "metaServlet";
-	private String user;
-	private String password;
 	private HashMap<String, String> params = new HashMap<String, String>();
 	private boolean debug = false;
 	private String response = null;
 	private String json;
+	private TACConnection connection;
 	
-	public String getTacUrl() {
-		return tacUrl;
-	}
-	
-	public void setTacUrl(String tacUrl) {
-		if (tacUrl == null || tacUrl.isEmpty()) {
-			throw new IllegalArgumentException("tacUrl cannot be null or empty");
+	public TACAction(TACConnection connection) {
+		if (connection == null) {
+			throw new IllegalArgumentException("Connection cannot be null");
 		}
-		this.tacUrl = tacUrl;
-	}
-	
-	public String getUser() {
-		return user;
-	}
-	
-	public void setUser(String user) {
-		if (user == null || user.isEmpty()) {
-			throw new IllegalArgumentException("user cannot be null or empty");
-		}
-		this.user = user;
-	}
-	
-	public String getPassword() {
-		return password;
-	}
-	
-	public void setPassword(String password) {
-		if (password == null || password.isEmpty()) {
-			throw new IllegalArgumentException("password cannot be null or empty");
-		}
-		this.password = password;
+		this.connection = connection;
 	}
 	
 	/**
@@ -81,9 +47,9 @@ public abstract class TACAction {
 		sb.append("{\"actionName\":\"");
 		sb.append(getAction());
 		sb.append("\",\"authUser\":\"");
-		sb.append(user);
+		sb.append(connection.getUser());
 		sb.append("\",\"authPass\":\"");
-		sb.append(password);
+		sb.append(connection.getPassword());
 		sb.append("\"");
 		for (Map.Entry<String, String> entry : params.entrySet()) {
 			sb.append(",\"");
@@ -106,9 +72,7 @@ public abstract class TACAction {
 
 	private String buildRequestUri() throws Exception {
 		StringBuilder sb = new StringBuilder();
-		sb.append(tacUrl);
-		sb.append("/");
-		sb.append(PATH);
+		sb.append(connection.getUrl());
 		sb.append("?");
 		String json = buildJson();
 		if (debug) {
@@ -119,23 +83,16 @@ public abstract class TACAction {
 	}
 	
 	protected String executeRequest() throws Exception {
-		HttpClient client = new DefaultHttpClient();
-		try {
-			String uri = buildRequestUri();
-			HttpGet get = new HttpGet(uri);
-			ResponseHandler<String> handler = new BasicResponseHandler();
-			response = client.execute(get, handler);
-			if (debug) {
-				System.out.println("Response:" + response);
-			}
-			String errorMessage = Util.extractByRegexGroup(response, "\\{\"error\":\"([a-zA-Z0-9\\s.;_]*)", 1);
-			if (errorMessage != null && errorMessage.isEmpty() == false) {
-				throw new Exception("Server error:" + errorMessage);
-			}
-			return response;
-		} finally {
-			client.getConnectionManager().shutdown();
+		String uri = buildRequestUri();
+		response = connection.execute(uri);
+		if (debug) {
+			System.out.println("Response:" + response);
 		}
+		String errorMessage = Util.extractByRegexGroup(response, "\\{\"error\":\"([a-zA-Z0-9\\s.;_]*)", 1);
+		if (errorMessage != null && errorMessage.isEmpty() == false) {
+			throw new Exception("Server error:" + errorMessage);
+		}
+		return response;
 	}
 
 	public boolean isDebug() {

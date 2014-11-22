@@ -5,21 +5,23 @@ import de.cimt.talendcomp.tac.RunTask;
 import de.cimt.talendcomp.tac.Util;
 
 public class Check {
+	
+//	private static String url = "http://on-0337-jll.local:8080/tac_560";
+	private static String url = "http://on-0337-jll.local:8080/org.talend.administrator.542";
+	private static String user = "jan.lolling@cimt-ag.de";
+	private static String passwd = "lolli";
 
 	/**
 	 * @param args
 	 * @throws Exception 
 	 */
 	public void testRunTaskASynchron() throws Exception {
-		String url = "http://on-0337-jll.local:8080/org.talend.administrator.540";
-		String user = "jan.lolling@cimt-ag.de";
-		String passwd = "nix";
 		GetTaskIdByName gtn = new GetTaskIdByName();
 		gtn.setDebug(true);
 		gtn.setTacUrl(url);
 		gtn.setUser(user);
 		gtn.setPassword(passwd);
-		String taskId = gtn.getTaskId("test_job");
+		String taskId = gtn.getTaskId("test_dummy1");
 		RunTask rt = new RunTask();
 		rt.setDebug(true);
 		rt.setTacUrl(url);
@@ -68,9 +70,6 @@ public class Check {
 	}
 
 	public void testRunTaskSynchron() {
-		String url = "http://on-0337-jll.local:8080/org.talend.administrator.540";
-		String user = "jan.lolling@cimt-ag.de";
-		String passwd = "lolli";
 		GetTaskIdByName gtn = new GetTaskIdByName();
 		gtn.setDebug(true);
 		gtn.setTacUrl(url);
@@ -110,10 +109,11 @@ public class Check {
 
 	public void testGetTaskIdByName() {
 		GetTaskIdByName rt = new GetTaskIdByName();
-		rt.setTacUrl("http://on-0337-jll.local:8080/org.talend.administrator");
-		rt.setUser("jan.lolling@cimt-ag.de");
-		rt.setPassword("lolli");
-		rt.setTaskName("test_excel_db");
+		rt.setDebug(true);
+		rt.setTacUrl(url);
+		rt.setUser(user);
+		rt.setPassword(passwd);
+		rt.setTaskName("test_dummy1");
 		try {
 			rt.execute();
 			System.out.println(rt.getTaskId());
@@ -124,6 +124,7 @@ public class Check {
 	
 	public void testGetTaskStatus() {
 		GetTaskStatus rt = new GetTaskStatus();
+		rt.setDebug(true);
 		rt.setTacUrl("http://on-0337-jll.local:8080/org.talend.administrator");
 		rt.setUser("jan.lolling@cimt-ag.de");
 		rt.setPassword("lolli");
@@ -141,7 +142,7 @@ public class Check {
 //		System.out.println(Util.extractByRegexGroup("Response:{\"error\":\"Incorrect password\",\"returnCode\":3}", "Response:\\{\"error\":\"([a-zA-Z0-9\\s.;_]*)", 1));
 		Check t = new Check();
 		try {
-			t.testRunTaskASynchron();
+			t.testGetTaskIdByName();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

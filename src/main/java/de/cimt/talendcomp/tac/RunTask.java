@@ -17,6 +17,10 @@ public class RunTask extends TaskAction {
 	private Integer returnCode;
 	private SimpleDateFormat date_param_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+	public RunTask(TACConnection connection) {
+		super(connection);
+	}
+
 	@Override
 	public String getAction() {
 		return ACTION_NAME;
