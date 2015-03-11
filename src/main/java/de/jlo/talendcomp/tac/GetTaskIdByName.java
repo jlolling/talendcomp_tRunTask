@@ -1,4 +1,4 @@
-package de.cimt.talendcomp.tac;
+package de.jlo.talendcomp.tac;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class GetTaskIdByName extends TaskAction {
 				// error by processing the request
 				throw new Exception("action failed: " + result);
 			} else {
-				taskId = Util.extractByRegexGroup(result, "\"task ID[:\\s]*\":([0-9]*)", 1);
+				taskId = Util.extractByRegexGroup(result, "\"task[\\s]{0,1}ID[:\\s]*\":([0-9]*)", 1, false);
 			}
 		} else {
 			throw new Exception("Request returns no result!");

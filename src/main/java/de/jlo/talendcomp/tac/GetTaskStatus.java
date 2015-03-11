@@ -1,4 +1,4 @@
-package de.cimt.talendcomp.tac;
+package de.jlo.talendcomp.tac;
 
 public class GetTaskStatus extends TaskAction {
 	
@@ -24,11 +24,11 @@ public class GetTaskStatus extends TaskAction {
 			// error by processing the request
 			throw new Exception("Getting task status failed: " + result);
 		} else {
-			errorStatus = Util.extractByRegexGroup(result, "\"errorStatus\":\"([A-Z_a-z0-9]*)\"", 1);
+			errorStatus = Util.extractByRegexGroup(result, "\"errorStatus\":\"([A-Z_a-z0-9]*)\"", 1, false);
 			if (errorStatus != null) {
 				errorStatus = errorStatus.trim();
 			}
-			status = Util.extractByRegexGroup(result, "\"status\":\"([A-Z_a-z0-9]*)\"", 1);
+			status = Util.extractByRegexGroup(result, "\"status\":\"([A-Z_a-z0-9]*)\"", 1, false);
 			if (NO_ERROR.equals(errorStatus) == false) {
 				returnCode = 4; // default return code in case of error
 			} else {
@@ -68,6 +68,10 @@ public class GetTaskStatus extends TaskAction {
 		} else {
 			return false;
 		}
+	}
+	
+	public boolean isInReadyState() {
+		return status.contains(READY);
 	}
 
 }
