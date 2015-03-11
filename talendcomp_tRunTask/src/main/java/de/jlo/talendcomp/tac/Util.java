@@ -1,4 +1,4 @@
-package de.cimt.talendcomp.tac;
+package de.jlo.talendcomp.tac;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -9,10 +9,10 @@ public class Util {
 	
 	private Util() {}
 
-	public static String extractByRegexGroup(String content, String regex, int groupOccurrence) {
+	public static String extractByRegexGroup(String content, String regex, int groupOccurrence, boolean caseSensitive) {
 		if (regex != null) {
 			if (content != null) {
-				Pattern pattern = Pattern.compile(regex);
+				Pattern pattern = Pattern.compile(regex, (caseSensitive ? 0 : Pattern.CASE_INSENSITIVE));
 		        Matcher matcher = pattern.matcher(content);
 		        while (matcher.find()) {
 	            	for (int i = 1, n = matcher.groupCount(); i <= n; i++) {

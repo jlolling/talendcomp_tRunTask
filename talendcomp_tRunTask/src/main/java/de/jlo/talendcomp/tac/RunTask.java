@@ -1,4 +1,4 @@
-package de.cimt.talendcomp.tac;
+package de.jlo.talendcomp.tac;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -16,6 +16,7 @@ public class RunTask extends TaskAction {
 	private String status;
 	private Integer returnCode;
 	private SimpleDateFormat date_param_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private String execRequestId;
 
 	public RunTask(TACConnection connection) {
 		super(connection);
@@ -38,16 +39,16 @@ public class RunTask extends TaskAction {
 			// error by processing the request
 			throw new Exception("Starting task failed: " + result);
 		} else {
+			execRequestId = Util.extractByRegexGroup(result, "\"execRequestId\":\"([A-Z_a-z0-9]*)\"", 1, false);
 			if (synchronous) {
-				errorStatus = Util.extractByRegexGroup(result, "\"errorStatus\":\"([A-Z_a-z0-9]*)\"", 1);
+				errorStatus = Util.extractByRegexGroup(result, "\"errorStatus\":\"([A-Z_a-z0-9]*)\"", 1, false);
 				if (errorStatus != null) {
 					errorStatus = errorStatus.trim();
 				}
-				status = Util.extractByRegexGroup(result, "\"status\":\"([A-Z_a-z0-9]*)\"", 1);
-				if (NO_ERROR.equals(errorStatus) == false) {
-					returnCode = 4;
-				} else {
-					returnCode = null;
+				status = Util.extractByRegexGroup(result, "\"status\":\"([A-Z_a-z0-9]*)\"", 1, false);
+				String returnCodeStr = Util.extractByRegexGroup(result, "\"returnCode\":([0-9]*)", 1, false);
+				if (returnCodeStr != null && returnCodeStr.isEmpty() == false) {
+					returnCode = Integer.parseInt(returnCodeStr);
 				}
 			}
 		}
@@ -114,6 +115,14 @@ public class RunTask extends TaskAction {
 
 	public String getErrorStatus() {
 		return errorStatus;
+	}
+
+	public String getExecRequestId() {
+		return execRequestId;
+	}
+	
+	public boolean useRequestHandling() {
+		return execRequestId != null;
 	}
 
 }

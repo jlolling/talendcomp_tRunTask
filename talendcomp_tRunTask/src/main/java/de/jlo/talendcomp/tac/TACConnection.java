@@ -1,22 +1,30 @@
-package de.cimt.talendcomp.tac;
+package de.jlo.talendcomp.tac;
 
-import org.apache.http.client.HttpClient;
+import java.io.IOException;
+
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 public class TACConnection {
 	
-	private HttpClient client = null;
+	private CloseableHttpClient client = null;
 	private String url;
 	private String user;
 	private String password;
 	private static final String PATH = "metaServlet";
+	private int maxAttempts = 1;
+	private int repeatWaitTime = 100;
 
 	public TACConnection(String url) {
-		client = new DefaultHttpClient();
 		setUrl(url);
+		init();
+	}
+	
+	public void init() {
+        client = HttpClients.custom().build();
 	}
 
 	public String getUrl() {
@@ -63,7 +71,31 @@ public class TACConnection {
 	}
 	
 	public void close() {
-		client.getConnectionManager().shutdown();
+		try {
+			client.close();
+		} catch (IOException e) {}
+	}
+
+	public int getMaxAttempts() {
+		return maxAttempts;
+	}
+
+	public int getRepeatWaitTime() {
+		return repeatWaitTime;
+	}
+
+	public void setMaxRepeats(Integer repeatMax) {
+		if (repeatMax != null && repeatMax >= 0) {
+			this.maxAttempts = repeatMax + 1;
+		} else {
+			this.maxAttempts = 1;
+		}
+	}
+
+	public void setRepeatWaitTime(Integer repeatWaitTime) {
+		if (repeatWaitTime != null && repeatWaitTime > 0) {
+			this.repeatWaitTime = repeatWaitTime;
+		}
 	}
 	
 }

@@ -1,4 +1,4 @@
-package de.cimt.talendcomp.tac;
+package de.jlo.talendcomp.tac;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,17 +7,34 @@ import org.apache.commons.codec.binary.Base64;
 
 public abstract class TACAction {
 	
+	public static final String NO_ERROR = "NO_ERROR";
+	public static final String ERROR = "ERROR";
+	public static final String READY_TO_RUN = "READY_TO_RUN";
+	public static final String READY = "READY_";
+	public static final String RUNNING = "RUNNING";
+	public static final String REQUESTING_RUN = "REQUESTING_RUN";
+	public static final String REQUESTING_STOP = "REQUESTING_STOP";
+	public static final String ENDING_SCRIPT = "ENDING_SCRIPT";
+	public static final String GENERATE_PATTERN = "GENERAT";
+	public static final String DEPLOY_PATTERN = "DEPLOY";
+	public static final String SENDING_SCRIPT_PATTERN = "SEND";
 	private HashMap<String, String> params = new HashMap<String, String>();
 	private boolean debug = false;
 	private String response = null;
 	private String json;
 	private TACConnection connection;
+	private int maxAttempts = 1;
+	private int repeatWaitTime = 5000;
+	private int currentRepeatCounter = 0;
+	private Exception lastException = null;
 	
 	public TACAction(TACConnection connection) {
 		if (connection == null) {
 			throw new IllegalArgumentException("Connection cannot be null");
 		}
 		this.connection = connection;
+		this.maxAttempts = connection.getMaxAttempts();
+		this.repeatWaitTime = connection.getRepeatWaitTime();
 	}
 	
 	/**
@@ -84,13 +101,38 @@ public abstract class TACAction {
 	
 	protected String executeRequest() throws Exception {
 		String uri = buildRequestUri();
-		response = connection.execute(uri);
-		if (debug) {
-			System.out.println("Response:" + response);
+		currentRepeatCounter = 0;
+		for ( ; currentRepeatCounter < maxAttempts; currentRepeatCounter++) {
+			lastException = null;
+			try {
+				response = connection.execute(uri);
+				if (debug) {
+					System.out.println("Response:" + response);
+				}
+				String errorMessage = Util.extractByRegexGroup(response, "\"error\":\"([a-z0-9\\-:#\\s.\\\\\\\"_,!'?]*)\",", 1, false);
+				if (errorMessage != null && errorMessage.isEmpty() == false) {
+					throw new Exception("Server error:" + errorMessage);
+				}
+				break; // if everything is fine
+			} catch (Exception e) {
+				lastException = e;
+				if (debug) {
+					System.err.println(getAction() + " failed " + (currentRepeatCounter + 1) + " times with error:" + e.getMessage());
+					System.out.println("Shutdown http client...");
+				}
+				connection.close();
+				if (currentRepeatCounter < (maxAttempts - 1)) {
+					System.out.println("Wait " + repeatWaitTime + " ms before retry...");
+					Thread.sleep(repeatWaitTime);
+				}
+				if (debug) {
+					System.out.println("Initialise new http client...");
+				}
+				connection.init();
+			}
 		}
-		String errorMessage = Util.extractByRegexGroup(response, "\\{\"error\":\"([a-zA-Z0-9\\s.;_]*)", 1);
-		if (errorMessage != null && errorMessage.isEmpty() == false) {
-			throw new Exception("Server error:" + errorMessage);
+		if (lastException != null) {
+			throw lastException;
 		}
 		return response;
 	}
@@ -113,6 +155,28 @@ public abstract class TACAction {
 	
 	public String getTimeAsString() {
 		return Util.getCurrentTimeAsString();
+	}
+
+	public int getMaxAttempts() {
+		return maxAttempts;
+	}
+
+	public void setMaxRepeats(Integer repeatMax) {
+		if (repeatMax != null && repeatMax >= 0) {
+			this.maxAttempts = repeatMax + 1;
+		} else {
+			this.maxAttempts = 1;
+		}
+	}
+
+	public void setRepeatWaitTime(Integer repeatWaitTime) {
+		if (repeatWaitTime != null && repeatWaitTime > 0) {
+			this.repeatWaitTime = repeatWaitTime;
+		}
+	}
+
+	public int getCurrentRepeatCounter() {
+		return currentRepeatCounter;
 	}
 	
 }
