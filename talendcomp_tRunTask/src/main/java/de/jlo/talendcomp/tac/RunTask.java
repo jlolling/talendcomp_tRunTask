@@ -32,6 +32,7 @@ public class RunTask extends TaskAction {
 	private Integer returnCode;
 	private SimpleDateFormat date_param_format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private String execRequestId;
+	private boolean needRestartWithCheckTaskStatus = false;
 
 	public RunTask(TACConnection connection) {
 		super(connection);
@@ -44,12 +45,24 @@ public class RunTask extends TaskAction {
 
 	@Override
 	public void execute() throws Exception {
+		needRestartWithCheckTaskStatus = false;
 		addParam(PARAM_TASKID, taskId);
 		addParam(PARAM_MODE, synchronous ? "synchronous" : "asynchronous");
 		if (contextParams.isEmpty() == false) {
 			addParam(PARAM_CONTEXT, buildContextParamJson());
 		}
-		String result = executeRequest();
+		String result = null;
+		try {
+			result = executeRequest();
+		} catch (Exception e) {
+			String message = e.getMessage();
+			if (message != null) {
+				if (message.contains("still processing")) {
+					needRestartWithCheckTaskStatus = true;
+					info("Task #" + taskId + " is already running - what a surprise - we have to check the task status again.");
+				}
+			}
+		}
 		if (result != null && result.trim().startsWith(ERROR)) {
 			// error by processing the request
 			throw new Exception("Starting task failed: " + result);
@@ -138,6 +151,10 @@ public class RunTask extends TaskAction {
 	
 	public boolean useRequestHandling() {
 		return execRequestId != null;
+	}
+
+	public boolean needRestartWithCheckTaskStatus() {
+		return needRestartWithCheckTaskStatus;
 	}
 
 }
