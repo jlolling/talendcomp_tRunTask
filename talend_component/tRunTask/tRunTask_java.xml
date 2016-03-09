@@ -2,8 +2,8 @@
 
 <COMPONENT>
 	<HEADER AUTHOR="Jan Lolling" COMPATIBILITY="ALL"
-		DATA_AUTO_PROPAGATE="false" PLATEFORM="ALL" RELEASE_DATE="20150311A"
-		SERIAL="" STARTABLE="true" STATUS="PROD" VERSION="2.0">
+		DATA_AUTO_PROPAGATE="false" PLATEFORM="ALL" RELEASE_DATE="20160309A"
+		SERIAL="" STARTABLE="true" STATUS="PROD" VERSION="2.2">
 		<SIGNATURE />
 	</HEADER>
 	<FAMILIES>
@@ -100,7 +100,7 @@
 	</ADVANCED_PARAMETERS>
 	<CODEGENERATION>
 		<IMPORTS>
-			<IMPORT NAME="jlo.talendcomp.tacws" MODULE="jlo.talendcomp.tacws-2.0-jar-with-dependencies.jar" REQUIRED="true" />
+			<IMPORT NAME="jlo.talendcomp.tacws" MODULE="jlo.talendcomp.tacws-2.2-jar-with-dependencies.jar" REQUIRED="true" />
 		</IMPORTS>
 	</CODEGENERATION>
 	<RETURNS>

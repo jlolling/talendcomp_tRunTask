@@ -26,11 +26,13 @@
     String tacUser = ElementParameterParser.getValue(node, "__TAC_USER__");
     String tacPasswd = ElementParameterParser.getValue(node, "__TAC_PASSWD__");
     String asynchron = ElementParameterParser.getValue(node, "__ASYNCHRONOUS_RUN__");
+    @SuppressWarnings("unchecked")
     List<Map<String, String>> contextParams = (List<Map<String,String>>) ElementParameterParser.getObjectValue(node, "__CONTEXT_PARAMS__");
     String waitTimeUntilRunning = ElementParameterParser.getValue(node, "__WAIT_UNTIL_RUNNING_CHECK_CYCLE__");
     String timeoutUntilRunning = ElementParameterParser.getValue(node, "__WAIT_UNTIL_RUNNING_TIMEOUT__");
     String waitUntilFinished = ElementParameterParser.getValue(node, "__WAIT_UNTIL_FINISHED_CHECK_CYCLE__");
     boolean checkTaskRunning = "true".equals(ElementParameterParser.getValue(node, "__CHECK_TASK_NOT_RUNNING_SIMULTANEOUSLY__"));
+    @SuppressWarnings("unchecked")
     List<Map<String, String>> listTasks = (List<Map<String,String>>) ElementParameterParser.getObjectValue(node, "__TASK_NOT_RUNNING_SIMULTANEOUSLY__");
     boolean waitForTaskEnd = "true".equals(ElementParameterParser.getValue(node, "__WAIT_UNTIL_END__"));
     boolean allowPreparing = "true".equals(ElementParameterParser.getValue(node, "__ALLOW_GENERATING__"));
@@ -56,7 +58,7 @@
 	        taskIdByName.setDebug(<%=debug%>);
 	        try {
 	    	    taskId_<%=cid%> = taskIdByName.getTaskId(<%=taskName.trim()%>);
-			    System.out.println("Task " + <%=taskName.trim()%> + ": has id: " + taskId_<%=cid%>);
+			    taskIdByName.info("Task " + <%=taskName.trim()%> + ": has id: " + taskId_<%=cid%>);
 	        } catch (Exception e) {
 	    	    globalMap.put("<%=cid%>_ERROR_MESSAGE", "Retrieve taskId failed: " + e.getMessage());
 	    	    throw e;
@@ -70,69 +72,71 @@
 <%  if ("status".equals(mode)) { %>
         // check the last status
 		{
-            de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+         de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 			status.setDebug(<%=debug%>);
 			status.setTaskId(taskId_<%=cid%>);
 			try {
 			    status.execute();
-                globalMap.put("<%=cid%>_STATUS", status.getStatus());
-                globalMap.put("<%=cid%>_ERROR_STATUS", status.getErrorStatus());
-                globalMap.put("<%=cid%>_HAS_ERRORS", status.hasErrors());
-                globalMap.put("<%=cid%>_IS_READY_TO_RUN", status.isReadyToRun());
-                globalMap.put("<%=cid%>_IS_PREPARING", status.isPreparing());
-                globalMap.put("<%=cid%>_IS_RUNNING", status.isRunning());
+             globalMap.put("<%=cid%>_STATUS", status.getStatus());
+             globalMap.put("<%=cid%>_ERROR_STATUS", status.getErrorStatus());
+             globalMap.put("<%=cid%>_HAS_ERRORS", status.hasErrors());
+             globalMap.put("<%=cid%>_IS_READY_TO_RUN", status.isReadyToRun());
+             globalMap.put("<%=cid%>_IS_PREPARING", status.isPreparing());
+             globalMap.put("<%=cid%>_IS_RUNNING", status.isRunning());
 			} catch (Exception e) {
 			    String message = "Get task status for task:" + label_<%=cid%> + " failed:" + e.getMessage();
-				globalMap.put("<%=cid%>_ERROR_MESSAGE", message);
+				 globalMap.put("<%=cid%>_ERROR_MESSAGE", message);
 			    throw e;
 			}
 		}
 <%  } else if ("run".equals(mode)) { %>
-        // run a task
-		{
-            // check if the task is ready to run
-            de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+      // run a task
+      int restartTaskCounter = 0;
+		startRun: while (true) { // startRun block begin
+         // check if the task is ready to run
+		   {
+         de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 			status.setDebug(<%=debug%>);
 			status.setTaskId(taskId_<%=cid%>);
 			status.execute();
 			if (status.isReadyToRun() == false && status.isRunning() == false) {
-                // task has any other state than READY_TO_RUN and RUNNING or REQUESTING_TO_RUN
-                // this could mean it is not deployed or is generating or need a generate
-				String message = "Task " + label_<%=cid%> + " is not not ready to run. Status:" + status.getStatus() + " ErrorStatus:" + status.getErrorStatus();
+             // task has any other state than READY_TO_RUN and RUNNING or REQUESTING_TO_RUN
+             // this could mean it is not deployed or is generating or need a generate
+				 String message = "Task " + label_<%=cid%> + " is not not ready to run. Status:" + status.getStatus() + " ErrorStatus:" + status.getErrorStatus();
 <%      if (allowPreparing) { %>
-				if (status.isPreparing() && status.isInReadyState() == false) {
-					// task is preparing
-                    System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is preparing.");
-					while (status.isPreparing() && status.isInReadyState() == false) {
-						Thread.sleep(10000); // wait 10s
-						status.execute(); // check again
-					}
-					if (status.isPreparing()) {
-						System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished a preparing step.");
-					} else {
-						System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished preparing.");
-					}
-				}
+				 if (status.isPreparing() && status.isInReadyState() == false) {
+                 // task is preparing
+                 status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is preparing.");
+					  while (status.isPreparing() && status.isInReadyState() == false) {
+                     Thread.sleep(10000); // wait 10s
+                     status.execute(); // check again
+					  }
+					  if (status.isPreparing()) {
+                     status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished a preparing step.");
+					  } else {
+						   status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished preparing.");
+					  }
+				 }
 <%      } else { %>
-				// the task is not ready to run
-				globalMap.put("<%=cid%>_ERROR_MESSAGE", message);
-		    	// we have to die here
-                throw new Exception(message);
+				 // the task is not ready to run
+				 globalMap.put("<%=cid%>_ERROR_MESSAGE", message);
+		    	 // we have to die here
+             throw new Exception(message);
 <%      } %>
-            }
-            globalMap.put("<%=cid%>_STATUS", status.getStatus());
-            globalMap.put("<%=cid%>_ERROR_STATUS", status.getErrorStatus());
-            globalMap.put("<%=cid%>_HAS_ERRORS", status.hasErrors());
-            globalMap.put("<%=cid%>_IS_READY_TO_RUN", status.isReadyToRun());
-            globalMap.put("<%=cid%>_IS_PREPARING", status.isPreparing());
-            globalMap.put("<%=cid%>_IS_RUNNING", status.isRunning());
-        }
+         }
+         globalMap.put("<%=cid%>_STATUS", status.getStatus());
+         globalMap.put("<%=cid%>_ERROR_STATUS", status.getErrorStatus());
+         globalMap.put("<%=cid%>_HAS_ERRORS", status.hasErrors());
+         globalMap.put("<%=cid%>_IS_READY_TO_RUN", status.isReadyToRun());
+         globalMap.put("<%=cid%>_IS_PREPARING", status.isPreparing());
+         globalMap.put("<%=cid%>_IS_RUNNING", status.isRunning());
+      }
 <%	    if (checkTaskRunning || waitForTaskEnd == false) { %>
 		{
-            // wait until tasks are finished (or simply not running)
-            java.util.List<String> listTasks = new java.util.ArrayList<String>();
-            de.jlo.talendcomp.tac.GetTaskIdByName taskIdByName = new de.jlo.talendcomp.tac.GetTaskIdByName(conn_<%=cid%>);
-            taskIdByName.setDebug(<%=debug%>);
+         // wait until tasks are finished (or simply not running)
+         java.util.List<String> listTasks = new java.util.ArrayList<String>();
+         de.jlo.talendcomp.tac.GetTaskIdByName taskIdByName = new de.jlo.talendcomp.tac.GetTaskIdByName(conn_<%=cid%>);
+         taskIdByName.setDebug(<%=debug%>);
 			de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 			status.setDebug(<%=debug%>);
             try {
@@ -146,7 +150,7 @@
 					if (status.isRunning()) {
 						if (firstLoop) {
 							firstLoop = false;
-							System.out.println("Task " + label_<%=cid%> + ": Own task is currently started or running. Wait for its end.");
+							status.info("Task " + label_<%=cid%> + ": Own task is currently started or running. Wait for its end.");
 						}
 						wait = true;
 						Thread.sleep(1000);
@@ -169,7 +173,7 @@
 <%           } %>			
 <%      } %>			
 			    } // end while
-			    System.out.println("Task " + label_<%=cid%> + ": All precondition tasks has been finished.");
+			    status.info("Task " + label_<%=cid%> + ": All precondition tasks has been finished.");
 			} catch (Exception e) {
 				globalMap.put("<%=cid%>_ERROR_MESSAGE", "Wait for task failed: " + e.getMessage());
 				throw e;
@@ -190,11 +194,14 @@
 		long startTime = System.currentTimeMillis();
 		long stopTime = 0;
 		try {
-			System.out.println(runTask_<%=cid%>.getTimeAsString() + "# Task " + label_<%=cid%> + " starting ...");
+			runTask_<%=cid%>.info(runTask_<%=cid%>.getTimeAsString() + "# Task " + label_<%=cid%> + " starting ...");
 			runTask_<%=cid%>.execute(); // start the task
 		} catch (Exception e) {
+		   if (runTask_<%=cid%>.needRestartWithCheckTaskStatus()) {
+		      runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": Task is still processing (not correclty recognised by the former status check) -> restart the check and run cycle.");
+		   	continue startRun; // with startRun loop
+		   }
 			globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
-			System.err.println(runTask_<%=cid%>.getJson());
 			throw e;
 		}
 <%      if ("true".equals(asynchron)) { %>
@@ -209,39 +216,39 @@
 				status.execute();
 				if (status.isRunning() == false || status.isPreparing()) {
 					long timeout = <%=timeoutUntilRunning%>;
-					System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " wait until running ...");
+					status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " wait until running ...");
 					boolean preparingMessagePrinted = false;
 					while (status.isRunning() == false || status.isPreparing()) {
 						if (status.isPreparing() == false) {
 							if (preparingMessagePrinted) {
-								System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished preparing.");
+								status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished preparing.");
 							}
 							long timeAfterStart = System.currentTimeMillis() - startTime;
 							if (timeAfterStart > timeout) {
-								System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " timeout to wait for running reached.");
+								status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " timeout to wait for running reached.");
 	                            break;
 							}
 						} else if (preparingMessagePrinted == false) {
 							preparingMessagePrinted = true;
-							System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is preparing.");
+							status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is preparing.");
 						}
 						Thread.sleep(waitTimeUntilRunning);
 						status.execute();
 					} // while
-					System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is running.");
+					status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is running.");
 				} else {
-					System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is already running.");
+					status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is already running.");
 				}			
-	            globalMap.put("<%=cid%>_STATUS", status.getStatus());
-    	        globalMap.put("<%=cid%>_ERROR_STATUS", status.getErrorStatus());
-        	    globalMap.put("<%=cid%>_HAS_ERRORS", status.hasErrors());
-            	globalMap.put("<%=cid%>_IS_READY_TO_RUN", status.isReadyToRun());
-            	globalMap.put("<%=cid%>_IS_PREPARING", status.isPreparing());
-            	globalMap.put("<%=cid%>_IS_RUNNING", status.isRunning());
+	         globalMap.put("<%=cid%>_STATUS", status.getStatus());
+    	      globalMap.put("<%=cid%>_ERROR_STATUS", status.getErrorStatus());
+        	   globalMap.put("<%=cid%>_HAS_ERRORS", status.hasErrors());
+            globalMap.put("<%=cid%>_IS_READY_TO_RUN", status.isReadyToRun());
+            globalMap.put("<%=cid%>_IS_PREPARING", status.isPreparing());
+            globalMap.put("<%=cid%>_IS_RUNNING", status.isRunning());
 			} catch (Exception e) {
 				globalMap.put("<%=cid%>_ERROR_MESSAGE", "Get running task status failed: " + e.getMessage());
-				System.err.println(status.getJson());
-			    throw e;
+				status.error(status.getJson(), null);
+			   throw e;
 			} 
 <%          if (waitForTaskEnd) { %>		
 			// waiting until task has been finished
@@ -255,24 +262,23 @@
             	globalMap.put("<%=cid%>_IS_PREPARING", status.isPreparing());
             	globalMap.put("<%=cid%>_IS_RUNNING", status.isRunning());
 				if (status.isRunning()) {
-					System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " wait until finished ...");
+					status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " wait until finished ...");
 					while (status.isRunning() || (status.isPreparing() && status.isInReadyState() == false)) {
 						Thread.sleep(waitUntilFinished);
 						status.execute();
 					}
 				} else {
-					System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is already finished.");
+					status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is already finished.");
 				}
 			} catch (Exception e) {
 			    globalMap.put("<%=cid%>_ERROR_MESSAGE", "Get finish task status failed: " + e.getMessage());
-			    System.err.println(status.getJson());
 				throw e;
 			}
-			System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + ": status:" + status.getStatus());
-			System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + ": errorStatus:" + status.getErrorStatus());
+			status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + ": status:" + status.getStatus());
+			status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + ": errorStatus:" + status.getErrorStatus());
 			Integer returnCode = status.getReturnCode();
 			globalMap.put("<%=cid%>_RETURN_CODE", returnCode); 
-			System.out.println(status.getTimeAsString() + "# Task " + label_<%=cid%> + ": returnCode:" + returnCode);
+			status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + ": returnCode:" + returnCode);
 <%  	        if (dieOnError) { %>
 			if (returnCode != null && returnCode.intValue() != 0) {
 				errorCode = returnCode;
@@ -295,10 +301,10 @@
 				Thread.sleep(waitUntilFinished);
 				tes.execute();
 			}
-			System.out.println(tes.getTimeAsString() + "# Task " + label_<%=cid%> + ": status:" + tes.getExecBasicStatus());
-			System.out.println(tes.getTimeAsString() + "# Task " + label_<%=cid%> + ": detailedStatus:" + tes.getExecDetailedStatus());
+			tes.info(tes.getTimeAsString() + "# Task " + label_<%=cid%> + ": status:" + tes.getExecBasicStatus());
+			tes.info(tes.getTimeAsString() + "# Task " + label_<%=cid%> + ": detailedStatus:" + tes.getExecDetailedStatus());
 			Integer returnCode = tes.getJobExitCode();
-			System.out.println(tes.getTimeAsString() + "# Task " + label_<%=cid%> + ": returnCode:" + returnCode);
+			tes.info(tes.getTimeAsString() + "# Task " + label_<%=cid%> + ": returnCode:" + returnCode);
 			globalMap.put("<%=cid%>_RETURN_CODE", returnCode);
 	        // check the last status again
 			{
@@ -329,11 +335,11 @@
 		}
 <%      } else { // run synchron %>
 		stopTime = System.currentTimeMillis();
-		System.out.println("Task " + label_<%=cid%> + ": status:" + runTask_<%=cid%>.getStatus());
-		System.out.println("Task " + label_<%=cid%> + ": errorStatus:" + runTask_<%=cid%>.getErrorStatus());
+		runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": status:" + runTask_<%=cid%>.getStatus());
+		runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": errorStatus:" + runTask_<%=cid%>.getErrorStatus());
 		Integer <%=cid%>_returnCode = runTask_<%=cid%>.getReturnCode();
 		globalMap.put("<%=cid%>_RETURN_CODE", <%=cid%>_returnCode); 
-		System.out.println("Task " + label_<%=cid%> + ": returnCode:" + <%=cid%>_returnCode);
+		runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": returnCode:" + <%=cid%>_returnCode);
 <%  	    if (dieOnError) { %>
 		if (<%=cid%>_returnCode != null && <%=cid%>_returnCode.intValue() != 0) {
 			errorCode = <%=cid%>_returnCode;
@@ -342,10 +348,12 @@
 	    }
 <%  	    } %>
 <%      } %>
-		System.out.println("Task " + label_<%=cid%> + ": ready.");
+		runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": ready.");
 		if (stopTime > 0) { // set duration only if we have wait until the end
 		    globalMap.put("<%=cid%>_RUN_DURATION", (stopTime - startTime));	
 		}
+		break;
+	  } // startRun block end
 <%  } else { // mode unknown %>
 	// unkown mode detected
 	if (true) throw new IllegalStateException("Operational mode: <%=mode%> is unknown!");

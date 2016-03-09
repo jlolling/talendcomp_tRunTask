@@ -19,9 +19,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 public abstract class TACAction {
 	
+	private static Logger logger = Logger.getLogger(TACAction.class);
 	public static final String NO_ERROR = "NO_ERROR";
 	public static final String ERROR = "ERROR";
 	public static final String READY_TO_RUN = "READY_TO_RUN";
@@ -108,7 +111,7 @@ public abstract class TACAction {
 		sb.append("?");
 		String json = buildJson();
 		if (debug) {
-			System.out.println("Request:" + json);
+			debug("Request json:" + json);
 		}
 		sb.append(Base64.encodeBase64String(json.getBytes("UTF-8")));
 		return sb.toString();
@@ -117,31 +120,40 @@ public abstract class TACAction {
 	protected String executeRequest() throws Exception {
 		String uri = buildRequestUri();
 		currentRepeatCounter = 0;
+		long currentRepeatWaitTime = repeatWaitTime;
 		for ( ; currentRepeatCounter < maxAttempts; currentRepeatCounter++) {
 			lastException = null;
 			try {
 				response = connection.execute(uri);
 				if (debug) {
-					System.out.println("Response:" + response);
+					debug("Response:" + response);
 				}
 				String errorMessage = Util.extractByRegexGroup(response, "\"error\":\"([a-z0-9\\-:#\\s.\\\\\\\"_,!'?]*)\",", 1, false);
 				if (errorMessage != null && errorMessage.isEmpty() == false) {
-					throw new Exception("Server error:" + errorMessage);
+					throw new Exception("Server error: " + errorMessage);
 				}
 				break; // if everything is fine
 			} catch (Exception e) {
+				String message = e.getMessage();
+				if (message != null) {
+					if (message.contains("still processing")) {
+						error("Got a still processing error. Stop retrying requests, need a complete status recheck!", e);
+					}
+				}
+				error("Request failed: " + e.getMessage(), e);
 				lastException = e;
 				if (debug) {
-					System.err.println(getAction() + " failed " + (currentRepeatCounter + 1) + " times with error:" + e.getMessage());
-					System.out.println("Shutdown http client...");
+					debug(getAction() + " failed " + (currentRepeatCounter + 1) + " times with error:" + e.getMessage());
+					debug("Shutdown http client...");
 				}
 				connection.close();
 				if (currentRepeatCounter < (maxAttempts - 1)) {
-					System.out.println("Wait " + repeatWaitTime + " ms before retry. Current attempt: " + (currentRepeatCounter + 1) + ", max attempts: " + maxAttempts);
-					Thread.sleep(repeatWaitTime);
+					info("Wait " + currentRepeatWaitTime + " ms before retry. Current attempt: " + (currentRepeatCounter + 1) + ", max attempts: " + maxAttempts);
+					Thread.sleep(currentRepeatWaitTime);
+					currentRepeatWaitTime = currentRepeatWaitTime * 2;
 				}
 				if (debug) {
-					System.out.println("Initialise new http client...");
+					debug("Initialise new http client...");
 				}
 				connection.init();
 			}
@@ -158,6 +170,13 @@ public abstract class TACAction {
 
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+		if (logger != null) {
+			if (debug) {
+				logger.setLevel(Level.DEBUG);
+			} else {
+				logger.setLevel(Level.INFO);
+			}
+		}
 	}
 
 	public String getResponse() {
@@ -194,4 +213,32 @@ public abstract class TACAction {
 		return currentRepeatCounter;
 	}
 	
+	public void info(String message) {
+		if (logger != null) {
+			logger.info(message);
+		} else {
+			System.out.println("INFO: " + message);
+		}
+	}
+	
+	public void debug(String message) {
+		if (logger != null) {
+			logger.debug(message);
+		} else {
+			System.out.println("DEBUG: " + message);
+		}
+	}
+
+	public void error(String message, Throwable t) {
+		if (message == null) {
+			message = t.getMessage();
+		}
+		if (logger != null) {
+			logger.error(message, t);
+		} else {
+			System.err.println("ERROR: " + message);
+			t.printStackTrace(System.err);
+		}
+	}
+
 }
