@@ -25,7 +25,7 @@
     String tacUrl = ElementParameterParser.getValue(node, "__TAC_URL__");
     String tacUser = ElementParameterParser.getValue(node, "__TAC_USER__");
     String tacPasswd = ElementParameterParser.getValue(node, "__TAC_PASSWD__");
-    String asynchron = ElementParameterParser.getValue(node, "__ASYNCHRONOUS_RUN__");
+    boolean asynchron = "true".equals(ElementParameterParser.getValue(node, "__ASYNCHRONOUS_RUN__"));
     @SuppressWarnings("unchecked")
     List<Map<String, String>> contextParams = (List<Map<String,String>>) ElementParameterParser.getObjectValue(node, "__CONTEXT_PARAMS__");
     String waitTimeUntilRunning = ElementParameterParser.getValue(node, "__WAIT_UNTIL_RUNNING_CHECK_CYCLE__");
@@ -190,7 +190,7 @@
 		runTask_<%=cid%>.addContextParam("<%=paramName.trim()%>", <%=paramValue.trim()%>);
 <%          } %>
 <%      } %>
-		runTask_<%=cid%>.setSynchronous(!<%=asynchron%>);
+		runTask_<%=cid%>.setSynchronous(<%=(false == asynchron)%>);
 		long startTime = System.currentTimeMillis();
 		long stopTime = 0;
 		try {
@@ -204,7 +204,7 @@
 			globalMap.put("<%=cid%>_ERROR_MESSAGE", e.getMessage());
 			throw e;
 		}
-<%      if ("true".equals(asynchron)) { %>
+<%      if (asynchron) { %>
 		if (runTask_<%=cid%>.useRequestHandling() == false) {
 			// terrible request handling prior Talend release 5.6
 			// waiting until task has been started
@@ -333,21 +333,61 @@
 			}
 <%  	    } %>
 		}
-<%      } else { // run synchron %>
+<%      } else { // if (asynchron) %>
 		stopTime = System.currentTimeMillis();
-		runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": status:" + runTask_<%=cid%>.getStatus());
-		runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": errorStatus:" + runTask_<%=cid%>.getErrorStatus());
-		Integer <%=cid%>_returnCode = runTask_<%=cid%>.getReturnCode();
-		globalMap.put("<%=cid%>_RETURN_CODE", <%=cid%>_returnCode); 
-		runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": returnCode:" + <%=cid%>_returnCode);
+        if (runTask_<%=cid%>.useRequestHandling() == false) {
+			runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": status:" + runTask_<%=cid%>.getStatus());
+			runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": errorStatus:" + runTask_<%=cid%>.getErrorStatus());
+			Integer <%=cid%>_returnCode = runTask_<%=cid%>.getReturnCode();
+			globalMap.put("<%=cid%>_RETURN_CODE", <%=cid%>_returnCode); 
+			runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": returnCode:" + <%=cid%>_returnCode);
 <%  	    if (dieOnError) { %>
-		if (<%=cid%>_returnCode != null && <%=cid%>_returnCode.intValue() != 0) {
-			errorCode = <%=cid%>_returnCode;
-		    globalMap.put("<%=cid%>_ERROR_MESSAGE", "Task " + label_<%=cid%> + ": Execute task failed. ErrorCode:" + errorCode);
-			throw new Exception("Child job running failed. ErrorCode:" + errorCode);
-	    }
+			if (<%=cid%>_returnCode != null && <%=cid%>_returnCode.intValue() != 0) {
+				errorCode = <%=cid%>_returnCode;
+		    	globalMap.put("<%=cid%>_ERROR_MESSAGE", "Task " + label_<%=cid%> + ": Execute task failed. ErrorCode:" + errorCode);
+				throw new Exception("Child job running failed. ErrorCode:" + errorCode);
+	    	}
 <%  	    } %>
-<%      } %>
+	    } else {
+			// simplyfied reliable request handling since Talend release 5.6
+			int waitUntilFinished = <%=waitUntilFinished%>;
+			de.jlo.talendcomp.tac.GetTaskExecutionStatus tes = new de.jlo.talendcomp.tac.GetTaskExecutionStatus(conn_<%=cid%>);
+			tes.setDebug(<%=debug%>);
+			tes.setExecRequestId(runTask_<%=cid%>.getExecRequestId());
+			tes.execute();
+			tes.info(tes.getTimeAsString() + "# Task " + label_<%=cid%> + ": status:" + tes.getExecBasicStatus());
+			tes.info(tes.getTimeAsString() + "# Task " + label_<%=cid%> + ": detailedStatus:" + tes.getExecDetailedStatus());
+			Integer returnCode = tes.getJobExitCode();
+			tes.info(tes.getTimeAsString() + "# Task " + label_<%=cid%> + ": returnCode:" + returnCode);
+			globalMap.put("<%=cid%>_RETURN_CODE", returnCode);
+	        // check the last status again
+			{
+	            de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+				status.setDebug(<%=debug%>);
+				status.setTaskId(taskId_<%=cid%>);
+				try {
+				    status.execute();
+	                globalMap.put("<%=cid%>_STATUS", status.getStatus());
+	                globalMap.put("<%=cid%>_ERROR_STATUS", status.getErrorStatus());
+	                globalMap.put("<%=cid%>_HAS_ERRORS", status.hasErrors());
+	                globalMap.put("<%=cid%>_IS_READY_TO_RUN", status.isReadyToRun());
+	                globalMap.put("<%=cid%>_IS_PREPARING", status.isPreparing());
+	                globalMap.put("<%=cid%>_IS_RUNNING", status.isRunning());
+				} catch (Exception e) {
+				    String message = "Get task status for task:" + label_<%=cid%> + " failed:" + e.getMessage();
+					globalMap.put("<%=cid%>_ERROR_MESSAGE", message);
+				    throw e;
+				}
+			}
+<%  	    if (dieOnError) { %>
+			if (returnCode != null && returnCode.intValue() != 0) {
+				errorCode = returnCode;
+				globalMap.put("<%=cid%>_ERROR_MESSAGE", "Task " + label_<%=cid%> + ": Execute task failed. ErrorCode:" + errorCode);
+				throw new Exception("Child job running failed. ErrorCode:" + errorCode);
+			}
+<%  	    } %>
+	    } // runTask_<%=cid%>.useRequestHandling() == false)
+<%      } // if (asynchron) %>
 		runTask_<%=cid%>.info("Task " + label_<%=cid%> + ": ready.");
 		if (stopTime > 0) { // set duration only if we have wait until the end
 		    globalMap.put("<%=cid%>_RUN_DURATION", (stopTime - startTime));	
