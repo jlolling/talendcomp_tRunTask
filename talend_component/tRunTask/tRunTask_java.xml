@@ -100,7 +100,7 @@
 	</ADVANCED_PARAMETERS>
 	<CODEGENERATION>
 		<IMPORTS>
-			<IMPORT NAME="jlo.talendcomp.tacws" MODULE="jlo.talendcomp.tacws-2.2-jar-with-dependencies.jar" REQUIRED="true" />
+			<IMPORT NAME="jlo.talendcomp.tacws" MODULE="jlo.talendcomp.tacws-2.3-jar-with-dependencies.jar" REQUIRED="true" />
 		</IMPORTS>
 	</CODEGENERATION>
 	<RETURNS>
