@@ -128,7 +128,7 @@ public abstract class TACAction {
 				if (debug) {
 					debug("Response:" + response);
 				}
-				String errorMessage = Util.extractByRegexGroup(response, "\"error\":\"([a-z0-9\\-:#\\s.\\\\\\\"_,!'?]*)\",", 1, false);
+				String errorMessage = Util.extractByRegexGroup(response, "\"error\":\"(.*)", 1, false);
 				if (errorMessage != null && errorMessage.isEmpty() == false) {
 					throw new Exception("Server error: " + errorMessage);
 				}
