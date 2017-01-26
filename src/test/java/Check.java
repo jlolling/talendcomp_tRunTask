@@ -1,9 +1,9 @@
 
-import de.jlo.talendcomp.tac.GetTaskExecutionStatus;
-import de.jlo.talendcomp.tac.GetTaskIdByName;
-import de.jlo.talendcomp.tac.GetTaskStatus;
-import de.jlo.talendcomp.tac.RunTask;
-import de.jlo.talendcomp.tac.TACConnection;
+import de.cimt.talendcomp.tac.GetTaskExecutionStatus;
+import de.cimt.talendcomp.tac.GetTaskIdByName;
+import de.cimt.talendcomp.tac.GetTaskStatus;
+import de.cimt.talendcomp.tac.RunTask;
+import de.cimt.talendcomp.tac.TACConnection;
 
 public class Check {
 	

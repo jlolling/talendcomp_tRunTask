@@ -39,7 +39,7 @@
     String maxRepetitions = ElementParameterParser.getValue(node, "__MAX_REPETITION__");
     String waitTimeBetweenRepetition = ElementParameterParser.getValue(node, "__WAIT_MILLIS_BETWEEN_REPETITION__");
 %>
-    de.jlo.talendcomp.tac.TACConnection conn_<%=cid%> = new de.jlo.talendcomp.tac.TACConnection(<%=tacUrl%>);
+    de.cimt.talendcomp.tac.TACConnection conn_<%=cid%> = new de.cimt.talendcomp.tac.TACConnection(<%=tacUrl%>);
     conn_<%=cid%>.setUser(<%=tacUser%>);
     conn_<%=cid%>.setPassword(<%=tacPasswd%>);
 <%  if (maxRepetitions != null && maxRepetitions.trim().isEmpty() == false) { %>
@@ -54,7 +54,7 @@
         String label_<%=cid%> = <%=taskName.trim()%>;
         {
 		    // retrieve the taskId by task name
-	        de.jlo.talendcomp.tac.GetTaskIdByName taskIdByName = new de.jlo.talendcomp.tac.GetTaskIdByName(conn_<%=cid%>);
+	        de.cimt.talendcomp.tac.GetTaskIdByName taskIdByName = new de.cimt.talendcomp.tac.GetTaskIdByName(conn_<%=cid%>);
 	        taskIdByName.setDebug(<%=debug%>);
 	        try {
 	    	    taskId_<%=cid%> = taskIdByName.getTaskId(<%=taskName.trim()%>);
@@ -72,7 +72,7 @@
 <%  if ("status".equals(mode)) { %>
         // check the last status
 		{
-         de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+         de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 			status.setDebug(<%=debug%>);
 			status.setTaskId(taskId_<%=cid%>);
 			try {
@@ -95,7 +95,7 @@
 		startRun: while (true) { // startRun block begin
          // check if the task is ready to run
 		   {
-         de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+         de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 			status.setDebug(<%=debug%>);
 			status.setTaskId(taskId_<%=cid%>);
 			status.execute();
@@ -135,9 +135,9 @@
 		{
          // wait until tasks are finished (or simply not running)
          java.util.List<String> listTasks = new java.util.ArrayList<String>();
-         de.jlo.talendcomp.tac.GetTaskIdByName taskIdByName = new de.jlo.talendcomp.tac.GetTaskIdByName(conn_<%=cid%>);
+         de.cimt.talendcomp.tac.GetTaskIdByName taskIdByName = new de.cimt.talendcomp.tac.GetTaskIdByName(conn_<%=cid%>);
          taskIdByName.setDebug(<%=debug%>);
-			de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+			de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 			status.setDebug(<%=debug%>);
             try {
 				boolean wait = true;
@@ -180,7 +180,7 @@
 			}
 		}
 <%      } %>
-		de.jlo.talendcomp.tac.RunTask runTask_<%=cid%> = new de.jlo.talendcomp.tac.RunTask(conn_<%=cid%>);
+		de.cimt.talendcomp.tac.RunTask runTask_<%=cid%> = new de.cimt.talendcomp.tac.RunTask(conn_<%=cid%>);
 		runTask_<%=cid%>.setDebug(<%=debug%>);
 		runTask_<%=cid%>.setTaskId(taskId_<%=cid%>);
 <%      for (Map<String, String> contextParam : contextParams) {
@@ -209,7 +209,7 @@
 			// terrible request handling prior Talend release 5.6
 			// waiting until task has been started
 			int waitTimeUntilRunning = <%=waitTimeUntilRunning%>;
-			de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+			de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 			status.setDebug(<%=debug%>);
 			status.setTaskId(runTask_<%=cid%>.getTaskId());
 			try {
@@ -290,7 +290,7 @@
 		} else {
 			// simplyfied reliable request handling since Talend release 5.6
 			int waitUntilFinished = <%=waitUntilFinished%>;
-			de.jlo.talendcomp.tac.GetTaskExecutionStatus tes = new de.jlo.talendcomp.tac.GetTaskExecutionStatus(conn_<%=cid%>);
+			de.cimt.talendcomp.tac.GetTaskExecutionStatus tes = new de.cimt.talendcomp.tac.GetTaskExecutionStatus(conn_<%=cid%>);
 			tes.setDebug(<%=debug%>);
 			tes.setExecRequestId(runTask_<%=cid%>.getExecRequestId());
 			tes.execute();
@@ -308,7 +308,7 @@
 			globalMap.put("<%=cid%>_RETURN_CODE", returnCode);
 	        // check the last status again
 			{
-	            de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+	            de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 				status.setDebug(<%=debug%>);
 				status.setTaskId(taskId_<%=cid%>);
 				try {
@@ -351,7 +351,7 @@
 	    } else {
 			// simplyfied reliable request handling since Talend release 5.6
 			int waitUntilFinished = <%=waitUntilFinished%>;
-			de.jlo.talendcomp.tac.GetTaskExecutionStatus tes = new de.jlo.talendcomp.tac.GetTaskExecutionStatus(conn_<%=cid%>);
+			de.cimt.talendcomp.tac.GetTaskExecutionStatus tes = new de.cimt.talendcomp.tac.GetTaskExecutionStatus(conn_<%=cid%>);
 			tes.setDebug(<%=debug%>);
 			tes.setExecRequestId(runTask_<%=cid%>.getExecRequestId());
 			tes.execute();
@@ -362,7 +362,7 @@
 			globalMap.put("<%=cid%>_RETURN_CODE", returnCode);
 	        // check the last status again
 			{
-	            de.jlo.talendcomp.tac.GetTaskStatus status = new de.jlo.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+	            de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 				status.setDebug(<%=debug%>);
 				status.setTaskId(taskId_<%=cid%>);
 				try {

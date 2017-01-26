@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package de.jlo.talendcomp.tac;
+package de.cimt.talendcomp.tac;
 
 public class GetTaskStatus extends TaskAction {
 	
