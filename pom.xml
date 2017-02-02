@@ -31,6 +31,7 @@
 				<version>1.7</version>
 				<configuration>
 					<componentName>tRunTask</componentName>
+					<jarExcludePattern>log4j</jarExcludePattern>
 				</configuration>
 				<executions>
 					<execution>
@@ -73,7 +74,6 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
