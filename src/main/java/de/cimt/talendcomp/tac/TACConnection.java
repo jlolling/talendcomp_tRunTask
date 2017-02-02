@@ -48,7 +48,7 @@ public class TACConnection {
 
 	private void setUrl(String url) {
 		if (url == null || url.isEmpty()) {
-			throw new IllegalArgumentException("url cannot be null or empty");
+			throw new IllegalArgumentException("TAC url cannot be null or empty");
 		}
 		if (url.contains("metaServlet") == false) {
 			this.url = url + "/" + PATH;

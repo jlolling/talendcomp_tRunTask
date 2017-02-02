@@ -1,2 +1,0 @@
-/org.talend.administrator/metaServlet?eyJhY3Rpb25OYW1lIjoidGFza0xvZyIsImF1dGhQYXNzIjoibG9sbGkiLCJhdXRoVXNlciI6Imphbi5sb2xsaW5nQGNpbXQtYWcuZGUiLCJ0YXNrSWQiOjF9
-{"actionName":"taskLog","authPass":"lolli","authUser":"jan.lolling@cimt-ag.de","taskId":1}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <COMPONENT> 
-  <HEADER AUTHOR="cimt AG" COMPATIBILITY="ALL" DATA_AUTO_PROPAGATE="false" PLATEFORM="ALL" RELEASE_DATE="20170127" SERIAL="" STARTABLE="true" STATUS="PROD" VERSION="2.3"> 
+  <HEADER AUTHOR="cimt AG" COMPATIBILITY="ALL" DATA_AUTO_PROPAGATE="false" PLATEFORM="ALL" RELEASE_DATE="20170202" SERIAL="" STARTABLE="true" STATUS="PROD" VERSION="3.0"> 
     <SIGNATURE/> 
   </HEADER>  
   <FAMILIES> 
@@ -95,17 +95,28 @@
     <PARAMETER FIELD="TEXT" NAME="WAIT_MILLIS_BETWEEN_REPETITION" NUM_ROW="40"> 
       <DEFAULT>5000</DEFAULT> 
     </PARAMETER>  
-    <PARAMETER NAME="RELEASE_LABEL_20170127" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
-      <DEFAULT>Release: 2.3 build at: 20170127</DEFAULT>
+    <PARAMETER NAME="RELEASE_LABEL_20170202" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
+      <DEFAULT>Release: 3.0 build at: 20170202</DEFAULT>
     </PARAMETER>
   </ADVANCED_PARAMETERS>  
   <CODEGENERATION> 
     <IMPORTS> 
-      <IMPORT NAME="cimt-talendcomp-tacws" MODULE="cimt-talendcomp-tacws-2.3.jar" REQUIRED="true"/>
+      <IMPORT NAME="cimt-talendcomp-tacws" MODULE="cimt-talendcomp-tacws-3.0.jar" REQUIRED="true"/>
       <IMPORT NAME="httpclient" MODULE="httpclient-4.3.6.jar" REQUIRED="true"/>
       <IMPORT NAME="httpcore" MODULE="httpcore-4.3.3.jar" REQUIRED="true"/>
       <IMPORT NAME="commons-logging" MODULE="commons-logging-1.1.3.jar" REQUIRED="true"/>
       <IMPORT NAME="commons-codec" MODULE="commons-codec-1.6.jar" REQUIRED="true"/>
+      <IMPORT NAME="cimt-talendcomp-json" MODULE="cimt-talendcomp-json-5.4.jar" REQUIRED="true"/>
+      <IMPORT NAME="jackson-databind" MODULE="jackson-databind-2.7.5.jar" REQUIRED="true"/>
+      <IMPORT NAME="jackson-annotations" MODULE="jackson-annotations-2.7.0.jar" REQUIRED="true"/>
+      <IMPORT NAME="jackson-core" MODULE="jackson-core-2.7.5.jar" REQUIRED="true"/>
+      <IMPORT NAME="json-path" MODULE="json-path-2.2.1-SNAPSHOT.jar" REQUIRED="true"/>
+      <IMPORT NAME="json-smart" MODULE="json-smart-2.2.1.jar" REQUIRED="true"/>
+      <IMPORT NAME="accessors-smart" MODULE="accessors-smart-1.1.jar" REQUIRED="true"/>
+      <IMPORT NAME="asm" MODULE="asm-5.0.3.jar" REQUIRED="true"/>
+      <IMPORT NAME="slf4j-simple" MODULE="slf4j-simple-1.6.1.jar" REQUIRED="true"/>
+      <IMPORT NAME="slf4j-api" MODULE="slf4j-api-1.6.1.jar" REQUIRED="true"/>
+      <IMPORT NAME="commons-lang3" MODULE="commons-lang3-3.4.jar" REQUIRED="true"/>
     </IMPORTS> 
   </CODEGENERATION>  
   <RETURNS> 
