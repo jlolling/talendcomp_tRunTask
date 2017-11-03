@@ -95,7 +95,7 @@
 		startRun: while (true) { // startRun block begin
          // check if the task is ready to run
 		   {
-         de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+         	de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 			status.setDebug(<%=debug%>);
 			status.setTaskId(taskId_<%=cid%>);
 			status.execute();
@@ -147,10 +147,10 @@
 					// Check if this task is not currently running
 					status.setTaskId(taskId_<%=cid%>);
 					status.execute();
-					if (status.isRunning()) {
+					if (status.isRunning() || status.isReadyToRun() == false) {
 						if (firstLoop) {
 							firstLoop = false;
-							status.info("Task " + label_<%=cid%> + ": Own task is currently started or running. Wait for its end.");
+							status.info("Task " + label_<%=cid%> + ": Own task is currently started or running or not ready. Wait for end of current processing.");
 						}
 						wait = true;
 						Thread.sleep(1000);

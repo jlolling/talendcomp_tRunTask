@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.cimt.talendcomp</groupId>
 	<artifactId>cimt-talendcomp-tacws</artifactId>
-	<version>3.0</version>
+	<version>3.1</version>
 	<name>TAC Rest WS</name>
 	<repositories>
 		<repository>
@@ -82,9 +82,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>de.cimt.talendcomp</groupId>
-			<artifactId>cimt-talendcomp-json</artifactId>
-			<version>5.4</version>
+			<groupId>de.jlo.talendcomp</groupId>
+			<artifactId>jlo-talendcomp-json</artifactId>
+			<version>12.0</version>
 		</dependency>
 	</dependencies>
 </project>
