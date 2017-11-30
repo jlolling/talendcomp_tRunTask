@@ -22,7 +22,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import de.cimt.talendcomp.json.JsonDocument;
+import de.jlo.talendcomp.json.JsonDocument;
 
 public class RunTask extends TaskAction {
 	

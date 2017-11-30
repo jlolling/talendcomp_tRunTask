@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.cimt.talendcomp</groupId>
 	<artifactId>cimt-talendcomp-tacws</artifactId>
-	<version>3.1</version>
+	<version>3.2</version>
 	<name>TAC Rest WS</name>
 	<repositories>
 		<repository>
@@ -21,14 +21,14 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>de.cimt.talendcomp</groupId>
 				<artifactId>cimt-talendcomp-maven-plugin</artifactId>
-				<version>1.7</version>
+				<version>1.8</version>
 				<configuration>
 					<componentName>tRunTask</componentName>
 					<jarExcludePattern>log4j</jarExcludePattern>
@@ -84,7 +84,17 @@
 		<dependency>
 			<groupId>de.jlo.talendcomp</groupId>
 			<artifactId>jlo-talendcomp-json</artifactId>
-			<version>12.0</version>
+			<version>12.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.googlecode.libphonenumber</groupId>
+					<artifactId>libphonenumber</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.mail</groupId>
+					<artifactId>mailapi</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 </project>

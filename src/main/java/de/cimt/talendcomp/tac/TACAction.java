@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import de.cimt.talendcomp.json.JsonDocument;
+import de.jlo.talendcomp.json.JsonDocument;
 
 public abstract class TACAction {
 	
