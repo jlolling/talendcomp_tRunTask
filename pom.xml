@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.cimt.talendcomp</groupId>
 	<artifactId>cimt-talendcomp-tacws</artifactId>
-	<version>2.3</version>
+	<version>3.2</version>
 	<name>TAC Rest WS</name>
 	<repositories>
 		<repository>
@@ -21,21 +21,43 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>de.cimt.talendcomp</groupId>
 				<artifactId>cimt-talendcomp-maven-plugin</artifactId>
-				<version>1.6</version>
+				<version>1.8</version>
 				<configuration>
 					<componentName>tRunTask</componentName>
+					<jarExcludePattern>log4j</jarExcludePattern>
 				</configuration>
 				<executions>
 					<execution>
 						<goals>
 							<goal>component</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<configuration>
+					<outputFile>${project.basedir}/target/cimt-metaservletcaller-${project.version}.jar</outputFile>
+					<transformers>
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<mainClass>de.cimt.talendcomp.tac.MetaServletCaller</mainClass>
+						</transformer>
+					</transformers>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -52,13 +74,27 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.17</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.jlo.talendcomp</groupId>
+			<artifactId>jlo-talendcomp-json</artifactId>
+			<version>12.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.googlecode.libphonenumber</groupId>
+					<artifactId>libphonenumber</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.mail</groupId>
+					<artifactId>mailapi</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 </project>

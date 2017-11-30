@@ -22,6 +22,10 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import de.jlo.talendcomp.json.JsonDocument;
+
 public abstract class TACAction {
 	
 	private static Logger logger = Logger.getLogger(TACAction.class);
@@ -77,31 +81,28 @@ public abstract class TACAction {
 		params.clear();
 	}
 	
-	private String buildJson() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{\"actionName\":\"");
-		sb.append(getAction());
-		sb.append("\",\"authUser\":\"");
-		sb.append(connection.getUser());
-		sb.append("\",\"authPass\":\"");
-		sb.append(connection.getPassword());
-		sb.append("\"");
+	private String buildJson() throws Exception {
+		JsonDocument doc = new JsonDocument(false);
+		ObjectNode requestNode = (ObjectNode) doc.getRootNode();
+		requestNode.put("actionName", getAction());
+		if (connection.getUser() != null) {
+			// there are actions without TAC user
+			requestNode.put("authUser", connection.getUser());
+			requestNode.put("authPass", connection.getPassword());
+		}
 		for (Map.Entry<String, String> entry : params.entrySet()) {
-			sb.append(",\"");
-			sb.append(entry.getKey());
+			String key = entry.getKey();
 			String value = entry.getValue();
 			if (value.startsWith("{") && value.endsWith("}")) {
-				// add a JSON object as value, avoid enclosures here!
-				sb.append("\":");
-				sb.append(value);
+				doc.setJsonObject(requestNode, key, value);
 			} else {
-				sb.append("\":\"");
-				sb.append(value);
-				sb.append("\"");
+				requestNode.put(key, value);
 			}
 		}
-		sb.append("}");
-		json = sb.toString();
+		String json = doc.toString();
+		if (logger.isDebugEnabled()) {
+			logger.debug(json);
+		}
 		return json;
 	}
 
@@ -137,7 +138,7 @@ public abstract class TACAction {
 				String message = e.getMessage();
 				if (message != null) {
 					if (message.contains("still processing")) {
-						error("Got a still processing error. Stop retrying requests, need a complete status recheck!", e);
+						error("Got a still processing error. Stop retrying requests, need a complete status re-check!", e);
 					}
 				}
 				error("Request failed: " + e.getMessage(), e);

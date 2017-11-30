@@ -20,6 +20,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import de.jlo.talendcomp.json.JsonDocument;
+
 public class RunTask extends TaskAction {
 	
 	public static final String ACTION_NAME = "runTask";
@@ -97,39 +101,25 @@ public class RunTask extends TaskAction {
 	}
 	
 	private String buildContextParamJson() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("{");
-		boolean firstLoop = true;
+		JsonDocument doc = new JsonDocument(false);
+		ObjectNode context = (ObjectNode) doc.getRootNode();
 		for (Map.Entry<String, Object> entry : contextParams.entrySet()) {
-			if (firstLoop) {
-				firstLoop = false;
-			} else {
-				sb.append(",");
-			}
-			sb.append("\"");
-			sb.append(entry.getKey());
-			sb.append("\":");
-			sb.append(convertValue(entry.getValue()));
+			context.put(entry.getKey(), convertValue(entry.getValue()));
 		}
-		sb.append("}");
-		return sb.toString();
+		return doc.toString();
 	}
 		
 	private String convertValue(Object value) {
 		if (value != null) {
 			if (value instanceof Date) {
-				return "\"" + date_param_format.format((Date) value) + "\"";
+				return date_param_format.format((Date) value);
 			} else if (value instanceof String) {
-				String s = ((String) value).replace("\\", "\\\\");
-				s = s.replace("\n", "\\n");
-				s = s.replace("\r", "\\r");
-				s = s.replace("\t", "\\t");
-				return "\"" + s + "\"";
+				return (String) value;
 			} else {
-				return "\"" + value.toString() + "\"";
+				return value.toString();
 			}
 		} else {
-			return "";
+			return null;
 		}
 	}
 

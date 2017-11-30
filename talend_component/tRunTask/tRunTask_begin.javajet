@@ -95,7 +95,7 @@
 		startRun: while (true) { // startRun block begin
          // check if the task is ready to run
 		   {
-         de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
+         	de.cimt.talendcomp.tac.GetTaskStatus status = new de.cimt.talendcomp.tac.GetTaskStatus(conn_<%=cid%>);
 			status.setDebug(<%=debug%>);
 			status.setTaskId(taskId_<%=cid%>);
 			status.execute();
@@ -107,14 +107,14 @@
 				 if (status.isPreparing() && status.isInReadyState() == false) {
                  // task is preparing
                  status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " is preparing.");
-					  while (status.isPreparing() && status.isInReadyState() == false) {
+					 while (status.isPreparing() && status.isInReadyState() == false) {
                      Thread.sleep(10000); // wait 10s
                      status.execute(); // check again
 					  }
 					  if (status.isPreparing()) {
-                     status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished a preparing step.");
+                          status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished a preparing step.");
 					  } else {
-						   status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished preparing.");
+						  status.info(status.getTimeAsString() + "# Task " + label_<%=cid%> + " has finished preparing.");
 					  }
 				 }
 <%      } else { %>
@@ -131,7 +131,7 @@
          globalMap.put("<%=cid%>_IS_PREPARING", status.isPreparing());
          globalMap.put("<%=cid%>_IS_RUNNING", status.isRunning());
       }
-<%	    if (checkTaskRunning || waitForTaskEnd == false) { %>
+<%	    if (checkTaskRunning || waitForTaskEnd) { %>
 		{
          // wait until tasks are finished (or simply not running)
          java.util.List<String> listTasks = new java.util.ArrayList<String>();
@@ -147,10 +147,10 @@
 					// Check if this task is not currently running
 					status.setTaskId(taskId_<%=cid%>);
 					status.execute();
-					if (status.isRunning()) {
+					if (status.isRunning() || status.isReadyToRun() == false) {
 						if (firstLoop) {
 							firstLoop = false;
-							status.info("Task " + label_<%=cid%> + ": Own task is currently started or running. Wait for its end.");
+							status.info("Task " + label_<%=cid%> + ": Own task is currently started or running or not ready. Wait for end of current processing.");
 						}
 						wait = true;
 						Thread.sleep(1000);
