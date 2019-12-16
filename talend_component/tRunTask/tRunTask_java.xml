@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <COMPONENT> 
-  <HEADER AUTHOR="cimt AG" COMPATIBILITY="ALL" DATA_AUTO_PROPAGATE="false" PLATEFORM="ALL" RELEASE_DATE="20171130" SERIAL="" STARTABLE="true" STATUS="PROD" VERSION="3.2"> 
+  <HEADER AUTHOR="cimt AG" COMPATIBILITY="ALL" DATA_AUTO_PROPAGATE="false" PLATEFORM="ALL" RELEASE_DATE="20191216" SERIAL="" STARTABLE="true" STATUS="PROD" VERSION="3.3"> 
     <SIGNATURE/> 
   </HEADER>  
   <FAMILIES> 
@@ -95,36 +95,26 @@
     <PARAMETER FIELD="TEXT" NAME="WAIT_MILLIS_BETWEEN_REPETITION" NUM_ROW="40"> 
       <DEFAULT>5000</DEFAULT> 
     </PARAMETER>  
-    <PARAMETER NAME="RELEASE_LABEL_20171130" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
-      <DEFAULT>Release: 3.2 build at: 20171130</DEFAULT>
+    <PARAMETER NAME="RELEASE_LABEL_20191216" FIELD="LABEL" COLOR="0;0;0" NUM_ROW="900">
+      <DEFAULT>Release: 3.3 build at: 20191216</DEFAULT>
     </PARAMETER>
   </ADVANCED_PARAMETERS>  
   <CODEGENERATION> 
     <IMPORTS> 
-      <IMPORT NAME="cimt-talendcomp-tacws" MODULE="cimt-talendcomp-tacws-3.2.jar" REQUIRED="true"/>
-      <IMPORT NAME="httpclient" MODULE="httpclient-4.3.6.jar" REQUIRED="true"/>
-      <IMPORT NAME="httpcore" MODULE="httpcore-4.3.3.jar" REQUIRED="true"/>
-      <IMPORT NAME="commons-logging" MODULE="commons-logging-1.1.3.jar" REQUIRED="true"/>
-      <IMPORT NAME="commons-codec" MODULE="commons-codec-1.6.jar" REQUIRED="true"/>
-      <IMPORT NAME="jlo-talendcomp-json" MODULE="jlo-talendcomp-json-12.2.jar" REQUIRED="true"/>
-      <IMPORT NAME="jackson-databind" MODULE="jackson-databind-2.8.6.jar" REQUIRED="true"/>
-      <IMPORT NAME="jackson-annotations" MODULE="jackson-annotations-2.8.0.jar" REQUIRED="true"/>
-      <IMPORT NAME="jackson-core" MODULE="jackson-core-2.8.6.jar" REQUIRED="true"/>
-      <IMPORT NAME="json-schema-validator" MODULE="json-schema-validator-2.2.8.jar" REQUIRED="true"/>
-      <IMPORT NAME="json-schema-core" MODULE="json-schema-core-1.2.8.jar" REQUIRED="true"/>
-      <IMPORT NAME="rhino" MODULE="rhino-1.7R4.jar" REQUIRED="true"/>
-      <IMPORT NAME="jackson-coreutils" MODULE="jackson-coreutils-1.8.jar" REQUIRED="true"/>
-      <IMPORT NAME="msg-simple" MODULE="msg-simple-1.1.jar" REQUIRED="true"/>
-      <IMPORT NAME="btf" MODULE="btf-1.2.jar" REQUIRED="true"/>
-      <IMPORT NAME="guava" MODULE="guava-16.0.1.jar" REQUIRED="true"/>
-      <IMPORT NAME="uri-template" MODULE="uri-template-0.9.jar" REQUIRED="true"/>
-      <IMPORT NAME="joda-time" MODULE="joda-time-2.9.7.jar" REQUIRED="true"/>
-      <IMPORT NAME="jsr305" MODULE="jsr305-3.0.1.jar" REQUIRED="true"/>
-      <IMPORT NAME="jopt-simple" MODULE="jopt-simple-5.0.3.jar" REQUIRED="true"/>
-      <IMPORT NAME="json-path" MODULE="json-path-2.3.0.jar" REQUIRED="true"/>
-      <IMPORT NAME="slf4j-api" MODULE="slf4j-api-1.7.25.jar" REQUIRED="true"/>
-      <IMPORT NAME="slf4j-simple" MODULE="slf4j-simple-1.6.1.jar" REQUIRED="true"/>
-      <IMPORT NAME="commons-lang3" MODULE="commons-lang3-3.4.jar" REQUIRED="true"/>
+      <IMPORT NAME="cimt-talendcomp-tacws" MODULE="cimt-talendcomp-tacws-3.3.jar" MVN="mvn:org.talend.libraries/cimt-talendcomp-tacws-3.3/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="httpclient" MODULE="httpclient-4.5.10.jar" MVN="mvn:org.talend.libraries/httpclient-4.5.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="httpcore" MODULE="httpcore-4.4.12.jar" MVN="mvn:org.talend.libraries/httpcore-4.4.12/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="commons-logging" MODULE="commons-logging-1.2.jar" MVN="mvn:org.talend.libraries/commons-logging-1.2/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="commons-codec" MODULE="commons-codec-1.11.jar" MVN="mvn:org.talend.libraries/commons-codec-1.11/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="jlo-talendcomp-json" MODULE="jlo-talendcomp-json-16.3.jar" MVN="mvn:org.talend.libraries/jlo-talendcomp-json-16.3/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="jackson-databind" MODULE="jackson-databind-2.9.10.1.jar" MVN="mvn:org.talend.libraries/jackson-databind-2.9.10.1/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="jackson-annotations" MODULE="jackson-annotations-2.9.10.jar" MVN="mvn:org.talend.libraries/jackson-annotations-2.9.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="jackson-core" MODULE="jackson-core-2.9.10.jar" MVN="mvn:org.talend.libraries/jackson-core-2.9.10/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="json-schema-validator" MODULE="json-schema-validator-1.0.16.jar" MVN="mvn:org.talend.libraries/json-schema-validator-1.0.16/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="slf4j-api" MODULE="slf4j-api-1.7.25.jar" MVN="mvn:org.talend.libraries/slf4j-api-1.7.25/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="json-path" MODULE="json-path-2.4.0.jar" MVN="mvn:org.talend.libraries/json-path-2.4.0/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="slf4j-simple" MODULE="slf4j-simple-1.6.1.jar" MVN="mvn:org.talend.libraries/slf4j-simple-1.6.1/6.0.0-SNAPSHOT" REQUIRED="true"/>
+      <IMPORT NAME="commons-lang3" MODULE="commons-lang3-3.4.jar" MVN="mvn:org.talend.libraries/commons-lang3-3.4/6.0.0-SNAPSHOT" REQUIRED="true"/>
     </IMPORTS> 
   </CODEGENERATION>  
   <RETURNS> 
