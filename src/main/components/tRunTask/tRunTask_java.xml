@@ -9,7 +9,7 @@
     <FAMILY>Orchestration</FAMILY> 
   </FAMILIES>  
   <DOCUMENTATION> 
-    <URL>http://jan-lolling.de/talend/components/help/tRunTask.pdf</URL> 
+    <URL>https://github.com/jlolling/talendcomp_tRunTask</URL> 
   </DOCUMENTATION>  
   <CONNECTORS> 
     <CONNECTOR CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="0"/>  
